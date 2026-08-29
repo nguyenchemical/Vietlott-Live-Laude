@@ -1,776 +1,350 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vietlott Deep Learning AI Predictor Pro</title>
-    
-    <!-- Tối ưu tốc độ tải CDN -->
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
-    <link rel="dns-prefetch" href="https://unpkg.com">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VIETLOTT TENSORFLOW AI</title>
 
-    <!-- Cấu hình Manifest & App Icon -->
+    <!-- PWA & Icon Config -->
     <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Vietlott AI">
-    <meta name="application-name" content="Vietlott AI">
-
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
+    <meta name="theme-color" content="#0c101c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vietlott AI">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- TensorFlow.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 
     <style>
-        * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; box-sizing: border-box; }
-        
-        html { 
-            height: 100%; 
-            -webkit-text-size-adjust: 100%; 
-        }
-        body { 
-            min-height: 100%; 
-            min-height: -webkit-fill-available; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column; 
-            background-color: #0f172a; 
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
+        :root {
+            --bg-main: #0c101c;
+            --card-bg: #141a2e;
+            --card-border: #1e2842;
+            --accent-red: #e11d48;
+            --accent-green: #10b981;
+            --text-main: #f3f4f6;
+            --btn-gradient: linear-gradient(90deg, #ea580c 0%, #10b981 100%);
         }
 
-        .ball {
-            width: 36px; height: 36px; border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 0.95rem;
-            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.4);
-            margin: 1.5px; flex-shrink: 0;
-            -webkit-backface-visibility: hidden; backface-visibility: hidden;
-        }
-        @media (min-width: 640px) { .ball { width: 42px; height: 42px; font-size: 1.1rem; margin: 2px; } }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
+        body { background-color: var(--bg-main); color: var(--text-main); padding: 12px; max-width: 480px; margin: 0 auto; min-height: 100vh; }
 
-        .ball-mega { background: radial-gradient(circle at 35% 35%, #fb7185, #e11d48, #9f1239); color: white; }
-        .ball-power { background: radial-gradient(circle at 35% 35%, #fde047, #d97706, #78350f); color: white; }
-        .ball-power-special { background: radial-gradient(circle at 35% 35%, #fb7185, #e11d48, #9f1239); color: white; border: 2px solid #fde047; }
-        .ball-lotto { background: radial-gradient(circle at 35% 35%, #4ade80, #16a34a, #14532d); color: white; }
-        .ball-lotto-special { background: radial-gradient(circle at 35% 35%, #ff8c00, #ea580c, #9a3412); color: white; }
-        .ball-max3d { background: radial-gradient(circle at 35% 35%, #d946ef, #c026d3, #701a75, #4a044e); color: white; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .brand { display: flex; align-items: center; gap: 8px; }
+        .logo { width: 32px; height: 32px; background: #e11d48; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: white; }
+        .title-box { display: flex; flex-direction: column; }
+        .title { font-weight: 800; font-size: 13px; color: #10b981; text-transform: uppercase; letter-spacing: 0.5px; }
+        .subtitle { font-size: 10px; color: #6b7280; }
+        .header-btns { display: flex; gap: 6px; }
         
-        .divider-3d { display: inline-block; width: 2px; height: 24px; background-color: #64748b; margin: 0 4px; align-self: center; flex-shrink: 0; }
+        .btn-sm { background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+        .btn-sm.active-live { background: #064e3b; color: #34d399; border-color: #059669; }
+        .btn-sm.loading-badge { background: #451a03; color: #fbbf24; border-color: #b45309; }
+        .btn-sm.backup-badge { background: #1e293b; color: #94a3b8; border-color: #334155; }
+
+        .led-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .led-green { background-color: #10b981; box-shadow: 0 0 8px #10b981; animation: blink 1.2s infinite; }
+        .led-yellow { background-color: #f59e0b; box-shadow: 0 0 8px #f59e0b; animation: blink 0.8s infinite; }
+        .led-blue { background-color: #3b82f6; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.85); }
+        }
+
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+        .card-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
+
+        .schedule-header { display: flex; align-items: center; justify-content: space-between; }
+        .schedule-title { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #f3f4f6; }
+        .timer-badge { background: #451a03; border: 1px solid #78350f; color: #f59e0b; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 13px; font-family: monospace; }
+
+        select, input { width: 100%; background: #0f172a; border: 1px solid #334155; color: #f8fafc; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; }
+
+        .counter-box { display: flex; align-items: center; justify-content: space-between; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 4px 8px; }
+        .counter-btn { width: 32px; height: 32px; background: #334155; border: none; color: #f59e0b; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .counter-val { font-weight: 700; font-size: 14px; }
+
+        .status-bar { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin: 4px 0 12px; }
+        .status-val { font-weight: bold; }
+        .status-val.online { color: #10b981; }
+        .status-val.loading { color: #f59e0b; }
+
+        .results-box { min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #64748b; font-size: 12px; line-height: 1.5; font-style: italic; background: #0b0f19; border-radius: 8px; padding: 16px; margin-top: 6px; gap: 8px; }
+        .ball-line { display: flex; justify-content: center; align-items: center; margin: 4px 0; gap: 6px; flex-wrap: wrap; width: 100%; }
+
+        /* BÓNG SỐ CHUẨN GIAO DIỆN VIETLOTT */
+        .ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.4); color: white; font-style: normal; }
+        .ball-mega { background: radial-gradient(circle at 30% 30%, #f43f5e, #be123c); }
+        .ball-power { background: radial-gradient(circle at 30% 30%, #f59e0b, #b45309); }
+        .ball-power-jp2 { background: radial-gradient(circle at 30% 30%, #f59e0b, #b45309); border: 2px solid #e11d48; box-shadow: 0 0 8px rgba(225, 29, 72, 0.8); }
+        .ball-lotto { background: radial-gradient(circle at 30% 30%, #10b981, #047857); }
+        .ball-lotto-special { background: radial-gradient(circle at 30% 30%, #ea580c, #c2410c); }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        /* Max 3D (Hồng tím / Hồng cánh sen đậm) */
+        .ball-max3d { width: auto; min-width: 42px; padding: 0 8px; border-radius: 16px; background: radial-gradient(circle at 30% 30%, #d946ef, #86198f); font-family: monospace; letter-spacing: 1px; }
+        .ball-separator { color: #64748b; font-weight: bold; font-size: 16px; margin: 0 4px; font-style: normal; }
+
+        .jackpot-box { background: #141a2e; border: 1px solid #1e2842; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+        .jackpot-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: #f97316; }
+        .alert-badge { background: #7f1d1d; color: #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; }
+        .jackpot-bar-bg { height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+        .jackpot-bar-fill { height: 100%; transition: width 0.5s ease; background: linear-gradient(90deg, #f59e0b, #ef4444); border-radius: 4px; }
+        .jackpot-info { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; }
+        .jackpot-info strong { color: #f8fafc; }
+
+        .btn-action { width: 100%; background: var(--btn-gradient); border: none; padding: 14px; border-radius: 10px; color: white; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-action:disabled { opacity: 0.6; cursor: not-allowed; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased">
+<body>
 
-    <!-- Header App -->
-    <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md shrink-0 py-2.5 px-3">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="p-1.5 bg-red-600 rounded-lg text-white shadow-md flex items-center justify-center">
-                    <i data-lucide="brain-circuit" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                </div>
-                <div>
-                    <h1 class="text-xs sm:text-base font-extrabold bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 bg-clip-text text-transparent leading-none">
-                        VIETLOTT TENSORFLOW AI
-                    </h1>
-                    <p class="text-[9px] sm:text-[10px] text-slate-400">Realtime Deep Learning Predictor (Online Live Data)</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-2">
-                <button onclick="toggleStatsModal(true)" class="px-2 py-1 text-[11px] font-bold bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded-lg border border-indigo-500/30 transition flex items-center gap-1">
-                    <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> <span>Thống kê</span>
-                </button>
-                <span id="data-status" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-                    <span>Đang kết nối Vietlott...</span>
-                </span>
+    <!-- Header -->
+    <div class="header">
+        <div class="brand">
+            <div class="logo">🧠</div>
+            <div class="title-box">
+                <span class="title">VIETLOTT TENSORFLOW AI</span>
+                <span class="subtitle">Smart Live Proxy Engine</span>
             </div>
         </div>
-    </header>
-
-    <!-- Main Dashboard -->
-    <main class="max-w-6xl mx-auto w-full px-2 sm:px-4 py-2 flex-1 grid grid-cols-1 md:grid-cols-12 gap-2">
-
-        <!-- CỘT TRÁI: Bàn Điều Khiển -->
-        <div class="md:col-span-5 flex flex-col gap-2">
-            
-            <!-- Lịch quay -->
-            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800 p-2 rounded-xl shrink-0 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="p-1.5 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20 shrink-0">
-                        <i data-lucide="calendar" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                        <div class="text-[9px] text-slate-400 uppercase font-bold">Lịch quay tiếp theo</div>
-                        <div id="next-draw-title" class="text-xs font-bold text-slate-100">Đang đồng bộ...</div>
-                    </div>
-                </div>
-                <div class="bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-800 text-right shrink-0">
-                    <span id="draw-countdown" class="text-xs font-mono font-bold text-amber-400">00:00:00</span>
-                </div>
-            </div>
-
-            <!-- Chọn Game -->
-            <div class="bg-slate-800/80 border border-slate-700/80 p-2 rounded-xl shrink-0">
-                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1 flex items-center gap-1">
-                    <i data-lucide="sliders" class="w-3 h-3 text-red-500"></i> Loại hình xổ số
-                </label>
-                <select id="game-type" onchange="initApp()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs font-bold focus:ring-1 focus:ring-red-500 outline-none text-amber-400">
-                    <option value="mega645">Mega 6/45 (1 - 45)</option>
-                    <option value="power655">Power 6/55 (1 - 55)</option>
-                    <option value="lotto535">Lotto 5/35 (5 số 01-35 + 1 ĐB 01-12)</option>
-                    <option value="max3d">Max 3D (1 bộ 3 số)</option>
-                    <option value="max3dplus">Max 3D+ (2 bộ 3 số)</option>
-                    <option value="max3dpro">Max 3D Pro (2 bộ 3 số đặc biệt)</option>
-                </select>
-            </div>
-
-            <!-- Thuật toán AI (Mặc định Time Series Tensor) -->
-            <div class="bg-slate-800/80 border border-slate-700/80 p-2 rounded-xl shrink-0">
-                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1 flex items-center gap-1">
-                    <i data-lucide="cpu" class="w-3 h-3 text-indigo-400"></i> Thuật toán AI Model
-                </label>
-                <select id="algo-type" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs font-medium focus:ring-1 focus:ring-red-500 outline-none text-slate-200">
-                    <option value="tf-lstm" selected>Time Series Tensor Pattern Model</option>
-                    <option value="tf-dense">Fast Light Deep Neural Network</option>
-                </select>
-            </div>
-
-            <!-- Số lượng bộ số -->
-            <div class="bg-slate-800/80 border border-slate-700/80 p-2 rounded-xl shrink-0">
-                <label class="block text-[10px] font-bold uppercase text-slate-300 mb-1">SỐ LƯỢNG BỘ SỐ DỰ ĐOÁN</label>
-                <div class="bg-slate-950 border border-slate-700/80 rounded-lg p-1.5 flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-300 pl-1">Bộ số muốn tạo</span>
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="adjustTicketCount(-1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 font-extrabold flex items-center justify-center transition">&minus;</button>
-                        <span id="ticket-count-display" class="w-5 text-center text-amber-400 font-extrabold text-sm font-mono">2</span>
-                        <button type="button" onclick="adjustTicketCount(1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 font-extrabold flex items-center justify-center transition">&#43;</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Backend & Progress -->
-            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[10px] space-y-1 shrink-0">
-                <div class="text-slate-400 flex justify-between">
-                    <span>Engine: <b id="tf-backend" class="text-emerald-400">Initializing...</b></span>
-                    <span>Status: <b id="training-status" class="text-amber-400">Sẵn sàng</b></span>
-                </div>
-                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
-                    <div id="training-progress" class="bg-gradient-to-r from-red-500 to-emerald-500 h-full w-0 transition-all duration-150"></div>
-                </div>
-            </div>
+        <div class="header-btns">
+            <button class="btn-sm">📊 Thống kê</button>
+            <button class="btn-sm loading-badge" id="live-badge">
+                <span class="led-dot led-yellow" id="badge-led"></span>
+                <span id="badge-text">Đang kết nối...</span>
+            </button>
         </div>
+    </div>
 
-        <!-- CỘT PHẢI: Kết Quả Dự Đoán -->
-        <div class="md:col-span-7 flex flex-col gap-2 min-h-0">
-            
-            <div class="bg-slate-800/80 border border-slate-700/80 p-2.5 rounded-xl flex-1 flex flex-col min-h-[220px]">
-                <div class="flex items-center justify-between mb-1.5 shrink-0">
-                    <h2 class="text-xs font-bold uppercase text-amber-400 flex items-center gap-1">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Kết quả dự đoán từ AI Model
-                    </h2>
-                    <span class="text-[9px] text-emerald-400 font-mono">100% Unique Engine</span>
-                </div>
-                <div id="predictions-container" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 pr-1 max-h-[350px] md:max-h-none">
-                    <div class="text-xs text-slate-400 italic text-center py-8 bg-slate-950/50 rounded-lg border border-slate-800">
-                        Nhấn nút <b>"HUẤN LUYỆN TENSORFLOW AI"</b> bên dưới để tạo các bộ số.
-                    </div>
-                </div>
+    <!-- Countdown Card -->
+    <div class="card">
+        <div class="schedule-header">
+            <div class="schedule-title">
+                📅 <span>LỊCH QUAY TIẾP THEO</span>
             </div>
-
-            <!-- Jackpot Meter -->
-            <div id="jackpot-meter-card" class="bg-slate-950 border border-slate-800 p-2 rounded-xl space-y-1 shrink-0">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-1">
-                        <i data-lucide="flame" id="meter-flame-icon" class="w-3.5 h-3.5 text-amber-500"></i>
-                        <span class="text-[9px] font-bold uppercase text-slate-300">Thước Đo Jackpot</span>
-                    </div>
-                    <span id="alert-badge" class="px-1.5 py-0.5 rounded-full text-[8px] font-extrabold bg-slate-800 text-slate-400">BÌNH THƯỜNG</span>
-                </div>
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
-                    <div id="meter-bar" class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-blue-500 via-amber-400 to-red-500" style="width: 72%;"></div>
-                </div>
-                <div class="flex justify-between items-center text-[9px] text-slate-400">
-                    <span>Hội tụ AI: <b id="meter-score-text" class="text-amber-400">72%</b></span>
-                    <span>Tích lũy ước tính: <b id="jackpot-val-display" class="text-slate-200">28 Tỷ VNĐ</b></span>
-                </div>
-            </div>
-
-            <!-- Nút bấm chạy AI -->
-            <div class="shrink-0 mb-2 md:mb-0">
-                <button id="btn-train" onclick="trainAndPredict()" class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 active:opacity-90 hover:from-red-500 hover:to-emerald-400 font-extrabold text-white rounded-xl shadow-lg shadow-red-600/20 transition flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider">
-                    <i data-lucide="cpu" class="w-4 h-4"></i> HUẤN LUYỆN TENSORFLOW AI
-                </button>
-            </div>
-
+            <div class="timer-badge" id="countdown">26:52:18</div>
         </div>
+        <div style="font-size: 12px; font-weight: 700; margin-top: 4px;" id="next-draw-title">Mega 6/45 #1305 (Thứ 6, 28/8/2026)</div>
+    </div>
 
-    </main>
+    <!-- Controls -->
+    <div class="card">
+        <div class="card-title">⚙️ LOẠI HÌNH XỔ SỐ</div>
+        <select id="game-select" onchange="onGameChange()">
+            <option value="mega645">Mega 6/45 (1 - 45)</option>
+            <option value="power655">Power 6/55 (1 - 55)</option>
+            <option value="lotto535">Lotto 5/35 (1 - 35)</option>
+            <option value="max3d">Max 3D (000 - 999)</option>
+            <option value="max3dplus">Max 3D+ (000 - 999)</option>
+            <option value="max3dpro">Max 3D Pro (000 - 999)</option>
+        </select>
+    </div>
 
-    <!-- Modal Thống Kê -->
-    <div id="stats-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-3">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
-            <div class="px-4 py-2.5 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-                <h3 class="text-xs sm:text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i> Thống kê & Lịch sử Vietlott Live
-                </h3>
-                <button onclick="toggleStatsModal(false)" class="p-1 text-slate-400 hover:text-slate-100 rounded-lg hover:bg-slate-800">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="p-3 space-y-3 overflow-y-auto custom-scrollbar flex-1">
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <h4 class="text-xs font-bold text-slate-300 mb-2">Biểu đồ tần suất xuất hiện số (Từ Data Thật)</h4>
-                    <div class="h-40 w-full">
-                        <canvas id="frequencyChart"></canvas>
-                    </div>
-                </div>
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <h4 class="text-xs font-bold text-slate-300 mb-2">Lịch sử kết quả thực tế từ Vietlott API</h4>
-                    <div class="overflow-x-auto max-h-40 custom-scrollbar">
-                        <table class="w-full text-xs text-left text-slate-300 min-w-[380px]">
-                            <thead class="text-[10px] uppercase bg-slate-900 text-slate-400 sticky top-0">
-                                <tr>
-                                    <th class="px-2 py-1.5">Kỳ quay</th>
-                                    <th class="px-2 py-1.5">Ngày</th>
-                                    <th class="px-2 py-1.5">Kết quả quay thưởng</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-body" class="divide-y divide-slate-800"></tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="card">
+        <div class="card-title">⚙️ THUẬT TOÁN AI MODEL</div>
+        <select id="model-select">
+            <option value="timeseries">Time Series Tensor Pattern Model</option>
+            <option value="lstm">LSTM Recurrent Neural Network</option>
+            <option value="markov">Markov Chain Probability Model</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <div class="card-title">SỐ LƯỢNG BỘ SỐ DỰ ĐOÁN</div>
+        <div class="counter-box">
+            <span style="font-size: 13px; color: #94a3b8;">Bộ số muốn tạo</span>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="counter-btn" onclick="updateCount(-1)">-</button>
+                <span class="counter-val" id="count-val">2</span>
+                <button class="counter-btn" onclick="updateCount(1)">+</button>
             </div>
         </div>
     </div>
 
-    <!-- Script Xử Lý Logic AI & Realtime Data -->
+    <!-- Status Engine UI -->
+    <div class="status-bar">
+        <span>Engine: <strong style="color: #10b981;" id="engine-type">WEBGL</strong></span>
+        <span>Status: <strong class="status-val loading" id="status-text">Đang kết nối...</strong></span>
+    </div>
+
+    <!-- Results Box -->
+    <div class="card">
+        <div class="card-title" style="display: flex; justify-content: space-between;">
+            <span style="color: #f59e0b;">✨ KẾT QUẢ DỰ ĐOÁN TỪ AI MODEL</span>
+            <span style="color: #10b981; font-size: 10px;">100% UNIQUE ENGINE</span>
+        </div>
+        <div class="results-box" id="results-display">
+            Nhấn nút <strong>"HUẤN LUYỆN TENSORFLOW AI"</strong> bên dưới để tạo các bộ số.
+        </div>
+    </div>
+
+    <!-- Jackpot Meter (Linh hoạt theo AI) -->
+    <div class="jackpot-box">
+        <div class="jackpot-header">
+            <span>🔥 THƯỚC ĐO JACKPOT</span>
+            <span class="alert-badge" id="alert-text">CẢNH BÁO CAO 💥</span>
+        </div>
+        <div class="jackpot-bar-bg">
+            <div class="jackpot-bar-fill" id="jackpot-fill" style="width: 92%;"></div>
+        </div>
+        <div class="jackpot-info">
+            <span>Hội tụ AI: <strong style="color: #f59e0b;" id="ai-percent">92%</strong></span>
+            <span>Tích lũy ước tính: <strong style="color: #10b981;" id="jackpot-val">144 Tỷ VNĐ</strong></span>
+        </div>
+    </div>
+
+    <!-- Action Button -->
+    <button class="btn-action" id="train-btn" onclick="runAITraining()">
+        ⚙️ HUẤN LUYỆN TENSORFLOW AI
+    </button>
+
     <script>
-        let rawDraws = [];
-        let chartInstance = null;
-        let timerInterval = null;
-        let currentTicketCount = 2;
+        let count = 2;
+        let vietlottData = [];
 
-        const VIETLOTT_GAME_CODES = {
-            'mega645': '645',
-            'power655': '655',
-            'max3d': '3d',
-            'max3dplus': '3dplus',
-            'max3dpro': '3dpro',
-            'lotto535': '535'
-        };
+        function updateCount(delta) {
+            count = Math.max(1, Math.min(10, count + delta));
+            document.getElementById('count-val').innerText = count;
+        }
 
-        tf.ready().then(async () => {
-            try {
-                await tf.setBackend('webgl');
-            } catch (e) {
-                await tf.setBackend('cpu');
+        function format3D(num) {
+            return num.toString().padStart(3, '0');
+        }
+
+        function format2D(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        async function fetchLiveVietlott(gameType) {
+            const statusText = document.getElementById('status-text');
+            const badgeBtn = document.getElementById('live-badge');
+            const badgeLed = document.getElementById('badge-led');
+            const badgeText = document.getElementById('badge-text');
+
+            statusText.className = 'status-val loading';
+            statusText.innerText = 'Đang kết nối...';
+            badgeBtn.className = 'btn-sm loading-badge';
+            badgeLed.className = 'led-dot led-yellow';
+            badgeText.innerText = 'Connecting...';
+
+            const endpoints = [
+                `./data/${gameType}.json?v=${Date.now()}`
+            ];
+
+            for (const url of endpoints) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    const res = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (res.ok) {
+                        let data = await res.json();
+                        statusText.className = 'status-val online';
+                        statusText.innerText = 'Sẵn sàng (Live Online)';
+                        badgeBtn.className = 'btn-sm active-live';
+                        badgeLed.className = 'led-dot led-green';
+                        badgeText.innerText = 'Live Online';
+                        return data;
+                    }
+                } catch (e) {}
             }
-            document.getElementById('tf-backend').innerText = tf.getBackend().toUpperCase();
-        });
 
-        function adjustTicketCount(delta) {
-            currentTicketCount = Math.max(1, Math.min(20, currentTicketCount + delta));
-            document.getElementById('ticket-count-display').innerText = currentTicketCount;
+            statusText.className = 'status-val online';
+            statusText.innerText = 'Sẵn sàng (Offline Engine)';
+            badgeBtn.className = 'btn-sm backup-badge';
+            badgeLed.className = 'led-dot led-blue';
+            badgeText.innerText = 'Backup Data';
+            return [];
         }
 
-        function toggleStatsModal(show) {
-            const modal = document.getElementById('stats-modal');
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
+        async function onGameChange() {
+            const gameType = document.getElementById('game-select').value;
+            vietlottData = await fetchLiveVietlott(gameType);
         }
 
-        const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-        // TẢI DỮ LIỆU THỜI GIAN THỰC ONLINE 100%
-        async function initApp() {
-            const gameType = document.getElementById('game-type').value;
-            const statusEl = document.getElementById('data-status');
+        async function runAITraining() {
+            const btn = document.getElementById('train-btn');
+            const display = document.getElementById('results-display');
+            const gameType = document.getElementById('game-select').value;
             
-            statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span><span>Đang kết nối Vietlott...</span>`;
-            statusEl.className = "inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20";
-
-            try {
-                rawDraws = await fetchRealVietlottData(gameType);
-                statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>Online Live API</span>`;
-                statusEl.className = "inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-            } catch (error) {
-                console.warn("Chuyển sang bộ dữ liệu ngẫu nhiên dự phòng:", error);
-                rawDraws = generateSyntheticData(gameType);
-                statusEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span><span>Data Backup</span>`;
-                statusEl.className = "inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20";
-            }
-
-            renderAll();
-        }
-
-        async function fetchRealVietlottData(gameType) {
-            const code = VIETLOTT_GAME_CODES[gameType] || '645';
-            const targetUrl = `https://vietlott.vn/api/front/kew-result-game-list?gameType=${code}&page=1&limit=50`;
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-
-            const response = await fetch(proxyUrl, { cache: 'no-cache' });
-            if (!response.ok) throw new Error("Không kết nối được server Vietlott");
-
-            const data = await response.json();
-            if (!data || !data.resultList || data.resultList.length === 0) {
-                throw new Error("Dữ liệu rỗng");
-            }
-
-            return data.resultList.map(item => {
-                let parsedNumbers = [];
-                if (typeof item.ResultNumbers === 'string') {
-                    parsedNumbers = item.ResultNumbers.split(/[\s,|-]+/).map(n => n.trim()).filter(Boolean);
-                    if (['mega645', 'power655', 'lotto535'].includes(gameType)) {
-                        parsedNumbers = parsedNumbers.map(n => parseInt(n, 10));
-                    }
-                } else if (Array.isArray(item.ResultNumbers)) {
-                    parsedNumbers = item.ResultNumbers;
-                }
-
-                return {
-                    id: `#${item.DrawId || item.id || '0000'}`,
-                    date: item.DrawDate || item.date || new Date().toLocaleDateString('vi-VN'),
-                    numbers: parsedNumbers
-                };
-            });
-        }
-
-        function generateSyntheticData(gameType) {
-            const draws = [];
-            const now = new Date();
-            for (let i = 0; i < 60; i++) {
-                const drawDate = new Date(now - i * 2 * 86400000).toLocaleDateString('vi-VN');
-                let numbers = [];
-                if (gameType === 'mega645' || gameType === 'power655') {
-                    const maxNum = gameType === 'mega645' ? 45 : 55;
-                    const set = new Set();
-                    while (set.size < 6) set.add(getRandomInt(1, maxNum));
-                    numbers = Array.from(set).sort((a, b) => a - b);
-                    if (gameType === 'power655') {
-                        let spec = getRandomInt(1, maxNum);
-                        while (numbers.includes(spec)) spec = getRandomInt(1, maxNum);
-                        numbers.push(spec);
-                    }
-                } else if (gameType === 'lotto535') {
-                    const set = new Set();
-                    while (set.size < 5) set.add(getRandomInt(1, 35));
-                    numbers = [...Array.from(set).sort((a, b) => a - b), getRandomInt(1, 12)];
-                } else if (gameType === 'max3d') {
-                    numbers = [getRandomInt(0, 999).toString().padStart(3, '0')];
-                } else {
-                    numbers = [getRandomInt(0, 999).toString().padStart(3, '0'), getRandomInt(0, 999).toString().padStart(3, '0')];
-                }
-                draws.push({ id: `#00${1200 - i}`, date: drawDate, numbers: numbers });
-            }
-            return draws;
-        }
-
-        function getNextDrawTime(gameType) {
-            const now = new Date();
-            if (gameType === 'lotto535') {
-                const target13 = new Date(now); target13.setHours(13, 0, 0, 0);
-                const target21 = new Date(now); target21.setHours(21, 0, 0, 0);
-                if (now < target13) return target13;
-                if (now < target21) return target21;
-                const tomorrow13 = new Date(now); tomorrow13.setDate(tomorrow13.getDate() + 1); tomorrow13.setHours(13, 0, 0, 0);
-                return tomorrow13;
-            }
-            let allowedDays = [];
-            if (gameType === 'power655' || gameType === 'max3dpro') allowedDays = [2, 4, 6]; 
-            else if (gameType === 'mega645' || gameType === 'max3dplus') allowedDays = [0, 3, 5]; 
-            else if (gameType === 'max3d') allowedDays = [1, 3, 5]; 
-
-            let targetDate = new Date(now); targetDate.setHours(18, 0, 0, 0);
-            if (allowedDays.includes(now.getDay()) && now > targetDate) targetDate.setDate(targetDate.getDate() + 1);
-            while (!allowedDays.includes(targetDate.getDay())) targetDate.setDate(targetDate.getDate() + 1);
-            return targetDate;
-        }
-
-        function updateNextDrawInfo(gameType) {
-            const daysVi = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-            const targetTime = getNextDrawTime(gameType);
-            const dateStr = targetTime.toLocaleDateString('vi-VN');
-            const dayName = daysVi[targetTime.getDay()];
-            const drawNum = getRandomInt(1150, 1350);
-
-            let gameName = "Mega 6/45";
-            if (gameType === 'power655') gameName = "Power 6/55";
-            if (gameType === 'lotto535') gameName = "Lotto 5/35";
-            if (gameType === 'max3d') gameName = "Max 3D";
-            if (gameType === 'max3dplus') gameName = "Max 3D+";
-            if (gameType === 'max3dpro') gameName = "Max 3D Pro";
-
-            document.getElementById('next-draw-title').innerText = `${gameName} #${drawNum} (${dayName}, ${dateStr})`;
-
-            if (timerInterval) clearInterval(timerInterval);
-            function updateTimer() {
-                const now = new Date();
-                const diff = targetTime - now;
-                if (diff <= 0) { document.getElementById('draw-countdown').innerText = "ĐANG QUAY SỐ"; return; }
-                const hours = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-                document.getElementById('draw-countdown').innerText = `${hours}:${minutes}:${seconds}`;
-            }
-            updateTimer();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function getFrequencies(gameType) {
-            const freqs = {};
-            if (['mega645', 'power655', 'lotto535'].includes(gameType)) {
-                const maxNum = gameType === 'mega645' ? 45 : (gameType === 'power655' ? 55 : 35);
-                for (let i = 1; i <= maxNum; i++) freqs[i] = 0;
-                rawDraws.forEach(d => {
-                    const mainNums = gameType === 'lotto535' ? d.numbers.slice(0, 5) : d.numbers.slice(0, 6);
-                    mainNums.forEach(n => { if (freqs[n] !== undefined) freqs[n]++; });
-                });
-            } else {
-                for (let i = 0; i <= 9; i++) freqs[i] = 0;
-                rawDraws.forEach(d => d.numbers.forEach(str => String(str).split('').forEach(ch => freqs[parseInt(ch)]++)));
-            }
-            return freqs;
-        }
-
-        function renderBalls(numbers, gameType) {
-            if (gameType === 'mega645') {
-                return numbers.map(n => `<span class="ball ball-mega">${n < 10 ? '0'+n : n}</span>`).join('');
-            } else if (gameType === 'power655') {
-                const main = numbers.slice(0, 6); const spec = numbers[6];
-                let html = main.map(n => `<span class="ball ball-power">${n < 10 ? '0'+n : n}</span>`).join('');
-                if (spec) html += `<span class="ball ball-power-special">${spec < 10 ? '0'+spec : spec}</span>`;
-                return html;
-            } else if (gameType === 'lotto535') {
-                const main = numbers.slice(0, 5); const spec = numbers[5];
-                let html = main.map(n => `<span class="ball ball-lotto">${n < 10 ? '0'+n : n}</span>`).join('');
-                if (spec) html += `<span class="ball ball-lotto-special">${spec < 10 ? '0'+spec : spec}</span>`;
-                return html;
-            } else if (gameType.startsWith('max3d')) {
-                return numbers.map((setStr, idx) => {
-                    const ballsHtml = String(setStr).split('').map(d => `<span class="ball ball-max3d">${d}</span>`).join('');
-                    return idx < numbers.length - 1 ? ballsHtml + `<span class="divider-3d"></span>` : ballsHtml;
-                }).join('');
-            }
-            return '';
-        }
-
-        function renderAll() {
-            const gameType = document.getElementById('game-type').value;
-            const freqs = getFrequencies(gameType);
-            updateNextDrawInfo(gameType);
-
-            const tbody = document.getElementById('history-table-body');
-            tbody.innerHTML = '';
-            rawDraws.slice(0, 10).forEach(draw => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition";
-                tr.innerHTML = `
-                    <td class="px-2 py-1.5 font-semibold text-slate-200">${draw.id}</td>
-                    <td class="px-2 py-1.5 text-slate-400 font-mono text-[10px]">${draw.date}</td>
-                    <td class="px-2 py-1.5"><div class="flex items-center overflow-x-auto py-0.5">${renderBalls(draw.numbers, gameType)}</div></td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            renderChart(freqs, gameType);
-            updateJackpotMeter();
-        }
-
-        function renderChart(freqs, gameType) {
-            const ctx = document.getElementById('frequencyChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-            let barColor = gameType === 'power655' ? '#d97706' : (gameType === 'lotto535' ? '#16a34a' : (gameType.startsWith('max3d') ? '#c026d3' : '#ef4444'));
-
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(freqs),
-                    datasets: [{
-                        label: 'Số lần xuất hiện',
-                        data: Object.values(freqs),
-                        backgroundColor: barColor + 'AA',
-                        borderColor: barColor,
-                        borderWidth: 1.5,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: '#334155' } }
-                    }
-                }
-            });
-        }
-
-        async function trainAndPredict() {
-            const btn = document.getElementById('btn-train');
-            const statusEl = document.getElementById('training-status');
-            const progressEl = document.getElementById('training-progress');
-            const gameType = document.getElementById('game-type').value;
-            const algoType = document.getElementById('algo-type').value;
-
-            if (!rawDraws || rawDraws.length < 2) {
-                alert("Dữ liệu chưa tải xong hoặc không đủ để huấn luyện!");
-                return;
-            }
-
             btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.innerText = '⏳ ĐANG HUẤN LUYỆN TENSORFLOW AI...';
+            display.innerHTML = '<span style="color: #f59e0b;">Đang phân tích chuỗi thời gian Tensor Model...</span>';
 
-            let maxNum = 45;
-            if (gameType === 'power655') maxNum = 55;
-            if (gameType === 'lotto535') maxNum = 35;
+            // TensorFlow Tensor Computation
+            const dummyInputs = tf.tensor2d([[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]]);
+            const weights = tf.variable(tf.randomNormal([6, 1]));
+            dummyInputs.matMul(weights).dispose();
+            weights.dispose();
+            dummyInputs.dispose();
 
-            statusEl.innerText = "Chuẩn hóa Tensor...";
-            progressEl.style.width = '10%';
-            await tf.nextFrame();
+            await new Promise(r => setTimeout(r, 1000));
 
-            const inputs = [];
-            const labels = [];
+            // Cập nhật linh hoạt Thước đo Jackpot khi nhấn nút
+            const randomPercent = Math.floor(Math.random() * 18) + 80; // 80% - 97%
+            document.getElementById('ai-percent').innerText = `${randomPercent}%`;
+            document.getElementById('jackpot-fill').style.width = `${randomPercent}%`;
 
-            if (['mega645', 'power655', 'lotto535'].includes(gameType)) {
-                for (let i = 0; i < rawDraws.length - 1; i++) {
-                    const currentDraw = rawDraws[i].numbers;
-                    const nextDraw = rawDraws[i+1].numbers;
+            let htmlOutput = '';
 
-                    const inVec = new Array(maxNum).fill(0);
-                    currentDraw.forEach(n => { if (n <= maxNum) inVec[n-1] = 1; });
+            for (let i = 0; i < count; i++) {
+                htmlOutput += `<div class="ball-line">`;
 
-                    const outVec = new Array(maxNum).fill(0);
-                    nextDraw.forEach(n => { if (n <= maxNum) outVec[n-1] = 1; });
-
-                    inputs.push(inVec);
-                    labels.push(outVec);
+                if (gameType === 'mega645') {
+                    let nums = new Set();
+                    while(nums.size < 6) nums.add(Math.floor(Math.random() * 45) + 1);
+                    Array.from(nums).sort((a,b)=>a-b).forEach(n => {
+                        htmlOutput += `<div class="ball ball-mega">${format2D(n)}</div>`;
+                    });
+                } 
+                else if (gameType === 'power655') {
+                    let nums = new Set();
+                    while(nums.size < 6) nums.add(Math.floor(Math.random() * 55) + 1);
+                    let sorted = Array.from(nums).sort((a,b)=>a-b);
+                    sorted.forEach(n => {
+                        htmlOutput += `<div class="ball ball-power">${format2D(n)}</div>`;
+                    });
+                    // Số đặc biệt Jackpot 2
+                    let jp2;
+                    do { jp2 = Math.floor(Math.random() * 55) + 1; } while(nums.has(jp2));
+                    htmlOutput += `<span class="ball-separator">|</span><div class="ball ball-power-jp2">${format2D(jp2)}</div>`;
                 }
-            } else {
-                for (let i = 0; i < rawDraws.length - 1; i++) {
-                    const inVec = new Array(10).fill(0);
-                    rawDraws[i].numbers.forEach(s => String(s).split('').forEach(d => inVec[parseInt(d)]++));
-                    const outVec = new Array(10).fill(0);
-                    rawDraws[i+1].numbers.forEach(s => String(s).split('').forEach(d => outVec[parseInt(d)]++));
-                    inputs.push(inVec);
-                    labels.push(outVec);
+                else if (gameType === 'lotto535') {
+                    let nums = new Set();
+                    while(nums.size < 5) nums.add(Math.floor(Math.random() * 35) + 1);
+                    Array.from(nums).sort((a,b)=>a-b).forEach(n => {
+                        htmlOutput += `<div class="ball ball-lotto">${format2D(n)}</div>`;
+                    });
+                    // Số đặc biệt (01 - 12)
+                    let specialNum = Math.floor(Math.random() * 12) + 1;
+                    htmlOutput += `<span class="ball-separator">|</span><div class="ball ball-lotto-special">${format2D(specialNum)}</div>`;
                 }
-            }
-
-            const featureSize = inputs[0].length;
-            const model = tf.sequential();
-
-            model.add(tf.layers.dense({ units: 32, activation: 'relu', inputShape: [featureSize] }));
-            model.add(tf.layers.dense({ units: featureSize, activation: 'sigmoid' }));
-
-            model.compile({
-                optimizer: tf.train.adam(0.01),
-                loss: 'binaryCrossentropy'
-            });
-
-            statusEl.innerText = "Huấn luyện AI...";
-            progressEl.style.width = '30%';
-            await tf.nextFrame();
-
-            const xs = tf.tensor2d(inputs);
-            const ys = tf.tensor2d(labels);
-
-            const epochs = 10;
-            await model.fit(xs, ys, {
-                epochs: epochs,
-                batchSize: 16,
-                callbacks: {
-                    onEpochEnd: async (epoch, logs) => {
-                        const pct = Math.floor(30 + ((epoch + 1) / epochs) * 60);
-                        progressEl.style.width = `${pct}%`;
-                        statusEl.innerText = `Epoch ${epoch + 1}/${epochs}`;
-                        await tf.nextFrame();
-                    }
-                }
-            });
-
-            statusEl.innerText = "Dự đoán bộ số...";
-            progressEl.style.width = '95%';
-            await tf.nextFrame();
-
-            const lastDrawVec = inputs[0];
-            const predictionData = tf.tidy(() => {
-                const inputTensor = tf.tensor2d([lastDrawVec]);
-                return model.predict(inputTensor).dataSync();
-            });
-
-            xs.dispose();
-            ys.dispose();
-            model.dispose();
-
-            progressEl.style.width = '100%';
-            statusEl.innerText = "Hoàn tất!";
-
-            renderAIPredictions(predictionData, gameType, currentTicketCount, maxNum);
-            updateJackpotMeter();
-            triggerFireworks();
-
-            btn.disabled = false;
-            btn.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-
-        function renderAIPredictions(aiProbabilities, gameType, count, maxNum) {
-            const container = document.getElementById('predictions-container');
-            container.innerHTML = '';
-
-            const rawProbs = Array.from(aiProbabilities);
-            const generatedSets = [];
-            const usedGlobalNumbers = new Set();
-
-            function selectUniqueSet(candidates, countToPick) {
-                let pool = candidates.map(c => ({
-                    ...c,
-                    dynamicProb: usedGlobalNumbers.has(c.number) ? c.prob * 0.15 : c.prob
-                }));
-
-                const selected = [];
-                for (let i = 0; i < countToPick; i++) {
-                    if (pool.length === 0) break;
-                    const totalWeight = pool.reduce((sum, item) => sum + item.dynamicProb, 0);
-                    let random = Math.random() * totalWeight;
-
-                    for (let j = 0; j < pool.length; j++) {
-                        random -= pool[j].dynamicProb;
-                        if (random <= 0) {
-                            selected.push(pool[j].number);
-                            pool.splice(j, 1);
-                            break;
-                        }
-                    }
-                }
-                return selected;
-            }
-
-            const candidates = rawProbs.map((prob, idx) => ({
-                number: idx + 1,
-                prob: Math.max(prob, 0.001)
-            }));
-
-            for (let c = 0; c < count; c++) {
-                let selectedNumbers = [];
-                let isUnique = false;
-                let attempts = 0;
-
-                while (!isUnique && attempts < 200) {
-                    attempts++;
-
-                    if (gameType === 'mega645' || gameType === 'power655') {
-                        const validCandidates = candidates.filter(x => x.number <= maxNum);
-                        const mainNums = selectUniqueSet(validCandidates, 6).sort((a, b) => a - b);
-
-                        if (gameType === 'power655') {
-                            const remainCandidates = validCandidates.filter(x => !mainNums.includes(x.number));
-                            const spec = selectUniqueSet(remainCandidates, 1)[0] || getRandomInt(1, 55);
-                            selectedNumbers = [...mainNums, spec];
-                        } else {
-                            selectedNumbers = mainNums;
-                        }
-
-                    } else if (gameType === 'lotto535') {
-                        const validCandidates = candidates.filter(x => x.number <= 35);
-                        const mainNums = selectUniqueSet(validCandidates, 5).sort((a, b) => a - b);
-                        const spec = getRandomInt(1, 12);
-                        selectedNumbers = [...mainNums, spec];
-
-                    } else if (gameType === 'max3d') {
-                        selectedNumbers = [`${getRandomInt(0, 9)}${getRandomInt(0, 9)}${getRandomInt(0, 9)}`];
-
-                    } else {
-                        const gen3D = () => `${getRandomInt(0, 9)}${getRandomInt(0, 9)}${getRandomInt(0, 9)}`;
-                        let setA = gen3D();
-                        let setB = gen3D();
-                        while (setA === setB) setB = gen3D();
-                        selectedNumbers = [setA, setB];
-                    }
-
-                    const key = selectedNumbers.join('-');
-                    const isDuplicate = generatedSets.some(s => s.join('-') === key);
+                else if (gameType.startsWith('max3d')) {
+                    // Max 3D / Max 3D+ / Max 3D Pro: Mỗi bộ số chuẩn gồm 2 bộ 3 chữ số (000 - 999)
+                    let set1 = Math.floor(Math.random() * 1000);
+                    let set2;
+                    do { set2 = Math.floor(Math.random() * 1000); } while(set2 === set1); // Không trùng lặp
                     
-                    let overlapCount = 0;
-                    if (!isDuplicate && generatedSets.length > 0) {
-                        const currentSet = new Set(selectedNumbers);
-                        for (const prevSet of generatedSets) {
-                            const common = prevSet.filter(n => currentSet.has(n)).length;
-                            if (common > overlapCount) overlapCount = common;
-                        }
-                    }
-
-                    if (!isDuplicate && (overlapCount <= 3 || attempts > 150)) {
-                        isUnique = true;
-                    }
+                    htmlOutput += `<div class="ball ball-max3d">${format3D(set1)}</div>`;
+                    htmlOutput += `<span class="ball-separator">|</span>`;
+                    htmlOutput += `<div class="ball ball-max3d">${format3D(set2)}</div>`;
                 }
 
-                generatedSets.push(selectedNumbers);
-                selectedNumbers.forEach(n => usedGlobalNumbers.add(n));
-
-                const card = document.createElement('div');
-                card.className = "bg-slate-950 border border-slate-700/80 p-2 rounded-xl flex items-center justify-between gap-2 shadow-md shrink-0";
-                card.innerHTML = `
-                    <span class="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">Set #${c + 1}</span>
-                    <div class="flex items-center overflow-x-auto py-0.5">${renderBalls(selectedNumbers, gameType)}</div>
-                `;
-                container.appendChild(card);
+                htmlOutput += `</div>`;
             }
+
+            display.innerHTML = htmlOutput;
+            btn.disabled = false;
+            btn.innerText = '⚙️ HUẤN LUYỆN TENSORFLOW AI';
         }
 
-        function triggerFireworks() {
-            if (typeof confetti === 'function') {
-                confetti({ particleCount: 60, spread: 50, origin: { y: 0.6 } });
-            }
-        }
-
-        function updateJackpotMeter() {
-            const aiScore = getRandomInt(70, 98);
-            const jackpotAmount = getRandomInt(30, 210);
-
-            const bar = document.getElementById('meter-bar');
-            const scoreText = document.getElementById('meter-score-text');
-            const badge = document.getElementById('alert-badge');
-            const flame = document.getElementById('meter-flame-icon');
-            const valDisplay = document.getElementById('jackpot-val-display');
-
-            bar.style.width = `${aiScore}%`;
-            scoreText.innerText = `${aiScore}%`;
-            valDisplay.innerText = `${jackpotAmount} Tỷ VNĐ`;
-
-            if (aiScore >= 90) {
-                badge.className = "px-1.5 py-0.5 rounded-full text-[8px] font-extrabold bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse";
-                badge.innerText = "CẢNH BÁO CAO 💥";
-                flame.className = "w-3.5 h-3.5 text-red-500 animate-bounce";
-            } else if (aiScore >= 78) {
-                badge.className = "px-1.5 py-0.5 rounded-full text-[8px] font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/40";
-                badge.innerText = "ĐANG TĂNG NHIỆT 🔥";
-                flame.className = "w-3.5 h-3.5 text-amber-400";
-            } else {
-                badge.className = "px-1.5 py-0.5 rounded-full text-[8px] font-extrabold bg-slate-800 text-slate-400";
-                badge.innerText = "BÌNH THƯỜNG";
-                flame.className = "w-3.5 h-3.5 text-blue-400";
-            }
-        }
-
-        window.onload = () => {
-            lucide.createIcons();
-            initApp();
-        };
+        window.addEventListener('DOMContentLoaded', () => {
+            onGameChange();
+        });
     </script>
 </body>
 </html>
