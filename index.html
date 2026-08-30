@@ -111,6 +111,9 @@
                 <button onclick="toggleStatsModal(true)" class="px-2 py-1 text-[11px] font-bold bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded-lg border border-indigo-500/30 transition flex items-center gap-1">
                     <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> <span>Thống kê</span>
                 </button>
+                <button id="btn-retry-live" onclick="manualRetryLiveData()" title="Thử kết nối lại ngay" class="p-1.5 text-slate-400 hover:text-emerald-400 bg-slate-800/60 hover:bg-slate-800 rounded-lg border border-slate-700 transition">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                </button>
                 <span id="data-status" class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
                     <span>Đang kết nối...</span>
@@ -393,7 +396,17 @@
             }
 
             try {
-                const fresh = await fetchRealVietlottData(gameType);
+                let fresh;
+                try {
+                    fresh = await fetchRealVietlottData(gameType);
+                } catch (firstError) {
+                    // Thử lại toàn bộ chuỗi nguồn dữ liệu 1 lần nữa sau 1.5s — nhiều lỗi chỉ là tạm thời
+                    // (proxy quá tải trong tích tắc), thử lại giúp tăng đáng kể tỉ lệ kết nối thành công
+                    // mà người dùng không phải làm gì cả.
+                    logTrain(`<span class="text-amber-400">[Retry]</span> Vòng 1 thất bại, thử lại sau 1.5s...`);
+                    await new Promise(r => setTimeout(r, 1500));
+                    fresh = await fetchRealVietlottData(gameType);
+                }
                 if (!fresh || fresh.length < 1) throw new Error("Dữ liệu nhận về quá ít");
                 rawDraws = fresh;
 
@@ -411,6 +424,23 @@
             }
         }
 
+        // Nút "thử lại" thủ công cạnh badge trạng thái: cho phép người dùng ép tải lại dữ liệu ngay lập tức
+        // thay vì chờ vòng tự động 3 phút — hữu ích để kiểm tra ngay khi thấy app đang ở trạng thái Backup.
+        async function manualRetryLiveData() {
+            const btn = document.getElementById('btn-retry-live');
+            const icon = btn.querySelector('i');
+            btn.disabled = true;
+            if (icon) icon.classList.add('animate-spin');
+            clearTrainLog();
+
+            const gameType = document.getElementById('game-type').value;
+            const changed = await refreshLiveData(gameType, false);
+            if (changed) renderAll();
+
+            if (icon) icon.classList.remove('animate-spin');
+            btn.disabled = false;
+        }
+
         // Tự động cập nhật dữ liệu mới mỗi 3 phút trong khi ứng dụng đang mở, để gần với "thời gian thực"
         // nhất có thể trong giới hạn của trình duyệt (không cần người dùng tải lại trang).
         let autoRefreshTimer = null;
@@ -424,12 +454,18 @@
         }
 
         // Nhiều CORS proxy dự phòng: thử lần lượt cho tới khi có 1 proxy phản hồi thành công.
-        // Vietlott.vn không bật CORS cho domain ngoài nên trình duyệt bắt buộc phải đi qua proxy trung gian;
-        // dùng nhiều proxy giúp ứng dụng vẫn "online" ngay cả khi 1-2 proxy bị quá tải/rate-limit.
+        // Vietlott.vn không bật CORS cho domain ngoài nên trình duyệt bắt buộc phải đi qua proxy trung gian.
+        //
+        // Danh sách dưới đây đã được chọn lọc lại (không cần bạn đăng ký tài khoản hay chỉnh sửa gì thêm):
+        // đã loại corsproxy.io vì kể từ 2026 dịch vụ này chỉ còn cho phép gọi từ localhost, không dùng
+        // được khi app deploy lên GitHub Pages; thay vào đó dùng corsfix.com và proxy.cors.sh — cả hai
+        // đều miễn phí, không giới hạn theo tài khoản, và không yêu cầu đăng ký.
         const CORS_PROXIES = [
-            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+            (url) => `https://proxy.cors.sh/${url}`,
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://corsfix.com/${url}`,
+            (url) => `https://cors.eu.org/${url}`,
             (url) => `https://thingproxy.freeboard.io/fetch/${url}`
         ];
 
@@ -452,27 +488,43 @@
                     const list = Array.isArray(dataRepo) ? dataRepo : (dataRepo.resultList || dataRepo.list || dataRepo.data || []);
                     if (list.length >= 1) {
                         const parsed = normalizeDrawData(list, gameType);
-                        if (parsed.length >= 1) return parsed;
+                        if (parsed.length >= 1) {
+                            logTrain(`<b class="text-emerald-400">[Data]</b> Đọc thành công từ data/${gameType}.json trong repo`);
+                            return parsed;
+                        }
                     }
                 }
             } catch (e) { /* không có file trong repo -> chuyển sang gọi API trực tiếp */ }
 
-            // 2) Gọi trực tiếp API Vietlott qua từng CORS proxy cho đến khi thành công
+            // 2) Gọi trực tiếp API Vietlott — ưu tiên proxy riêng (nếu đã cấu hình), sau đó lần lượt các proxy công cộng
             const code = VIETLOTT_GAME_CODES[gameType] || '645';
             const targetUrl = `https://vietlott.vn/api/front/kew-result-game-list?gameType=${encodeURIComponent(code)}&page=1&limit=50`;
 
+            const proxyBuilders = [];
+            if (OWN_PROXY_URL) proxyBuilders.push((url) => `${OWN_PROXY_URL}${encodeURIComponent(url)}`);
+            proxyBuilders.push(...CORS_PROXIES);
+
             let lastError = null;
-            for (const buildProxyUrl of CORS_PROXIES) {
-                try {
-                    const response = await fetchWithTimeout(buildProxyUrl(targetUrl), { cache: 'no-cache' }, 7000);
-                    if (!response.ok) throw new Error(`Proxy lỗi HTTP ${response.status}`);
-                    const data = await response.json();
-                    const list = Array.isArray(data) ? data : (data.resultList || data.list || data.data || []);
-                    if (!list || list.length < 1) throw new Error("Dữ liệu rỗng");
-                    return normalizeDrawData(list, gameType);
-                } catch (e) {
-                    lastError = e;
-                    continue; // thử proxy kế tiếp
+            // Thử 2 vòng: nhiều proxy công cộng chỉ lỗi thoáng qua (quá tải tạm thời), lặp lại vòng 2
+            // sau khi nghỉ ngắn giúp tăng đáng kể tỉ lệ thành công mà không cần người dùng làm gì thêm.
+            for (let pass = 0; pass < 2; pass++) {
+                if (pass === 1) await new Promise(r => setTimeout(r, 1500));
+                for (let i = 0; i < proxyBuilders.length; i++) {
+                    const buildProxyUrl = proxyBuilders[i];
+                    const label = (OWN_PROXY_URL && i === 0) ? 'Proxy riêng' : `Proxy công cộng #${OWN_PROXY_URL ? i : i + 1}`;
+                    try {
+                        const response = await fetchWithTimeout(buildProxyUrl(targetUrl), { cache: 'no-cache' }, 8000);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        const data = await response.json();
+                        const list = Array.isArray(data) ? data : (data.resultList || data.list || data.data || []);
+                        if (!list || list.length < 1) throw new Error("Dữ liệu rỗng");
+                        logTrain(`<b class="text-emerald-400">[Data]</b> ${label} phản hồi thành công (vòng ${pass + 1})`);
+                        return normalizeDrawData(list, gameType);
+                    } catch (e) {
+                        lastError = e;
+                        logTrain(`<span class="text-red-400">[Data]</span> ${label} lỗi (vòng ${pass + 1}): ${e.message || e}`);
+                        continue; // thử proxy kế tiếp
+                    }
                 }
             }
             throw lastError || new Error("Tất cả nguồn dữ liệu trực tuyến đều không phản hồi");
