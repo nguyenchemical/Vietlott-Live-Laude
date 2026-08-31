@@ -229,8 +229,8 @@
                 </div>
             </div>
 
-            <!-- Nút bấm -->
-            <div class="shrink-0 mb-2 md:mb-0">
+            <!-- Nút bấm: dính (sticky) ở đáy màn hình trên di động để luôn hiện ra mà không cần cuộn hết trang -->
+            <div class="sticky bottom-0 z-20 -mx-2 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent md:static md:bg-none md:mx-0 md:px-0 md:pt-0 md:pb-0">
                 <button id="btn-train" onclick="trainAndPredict()" class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 active:opacity-90 hover:from-red-500 hover:to-emerald-400 font-extrabold text-white rounded-xl shadow-lg shadow-red-600/20 transition flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider">
                     <i data-lucide="cpu" class="w-4 h-4"></i> HUẤN LUYỆN TENSORFLOW AI
                 </button>
@@ -452,6 +452,10 @@
                 if (changed) renderAll();
             }, 3 * 60 * 1000);
         }
+
+        // Proxy riêng của bạn trên Cloudflare Workers — luôn được thử trước tiên, ổn định hơn hẳn
+        // các proxy công cộng bên dưới vì không bị chia sẻ tải với người dùng khác.
+        const OWN_PROXY_URL = "https://vietlott-proxy.nguyenchemical.workers.dev/?url=";
 
         // Nhiều CORS proxy dự phòng: thử lần lượt cho tới khi có 1 proxy phản hồi thành công.
         // Vietlott.vn không bật CORS cho domain ngoài nên trình duyệt bắt buộc phải đi qua proxy trung gian.
