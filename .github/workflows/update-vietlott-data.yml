@@ -1,0 +1,33 @@
+name: Cập nhật dữ liệu Vietlott
+
+on:
+  schedule:
+    # Chạy mỗi 3 tiếng (giờ UTC) — Vietlott quay số vào các buổi tối nên tần suất này đủ để bắt kịp
+    - cron: '0 */3 * * *'
+  workflow_dispatch: {}   # cho phép bấm nút "Run workflow" để chạy thủ công ngay lập tức
+
+permissions:
+  contents: write   # cần quyền ghi để commit dữ liệu mới vào repo (đã bật sẵn ở Settings > Actions)
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Lấy dữ liệu Vietlott mới nhất
+        run: node scripts/update-vietlott-data.js
+
+      - name: Commit & push nếu có thay đổi
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: tự động cập nhật dữ liệu Vietlott"
+          git push
