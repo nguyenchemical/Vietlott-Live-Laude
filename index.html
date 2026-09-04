@@ -243,32 +243,58 @@
         <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
             <div class="px-4 py-2.5 border-b border-slate-800 flex justify-between items-center bg-slate-950">
                 <h3 class="text-xs sm:text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i> Thống kê & Lịch sử Vietlott Live
+                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i> Thống kê & Cá nhân hoá
                 </h3>
                 <button onclick="toggleStatsModal(false)" class="p-1 text-slate-400 hover:text-slate-100 rounded-lg hover:bg-slate-800">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
+            <div class="flex border-b border-slate-800 bg-slate-950 shrink-0 overflow-x-auto">
+                <button data-tab="stats" onclick="switchModalTab('stats')" class="modal-tab-btn px-3 py-2 text-[11px] font-bold text-indigo-300 border-b-2 border-indigo-400 whitespace-nowrap">Thống kê</button>
+                <button data-tab="tickets" onclick="switchModalTab('tickets')" class="modal-tab-btn px-3 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap">Vé của tôi</button>
+                <button data-tab="notify" onclick="switchModalTab('notify')" class="modal-tab-btn px-3 py-2 text-[11px] font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap">Thông báo</button>
+            </div>
             <div class="p-3 space-y-3 overflow-y-auto custom-scrollbar flex-1">
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <h4 class="text-xs font-bold text-slate-300 mb-2">Biểu đồ tần suất xuất hiện số</h4>
-                    <div class="h-40 w-full">
-                        <canvas id="frequencyChart"></canvas>
+                <div id="tab-content-stats" class="space-y-3">
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2">Biểu đồ tần suất xuất hiện số</h4>
+                        <div class="h-40 w-full">
+                            <canvas id="frequencyChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-bold text-slate-300">🔥 Số nóng / ❄️ Số lạnh</h4>
+                            <span id="archive-count-label" class="text-[9px] text-slate-500 font-mono"></span>
+                        </div>
+                        <div id="hot-cold-container" class="grid grid-cols-2 gap-2 text-xs"></div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2">🎯 Độ chính xác AI (soi cầu lịch sử)</h4>
+                        <div id="accuracy-stats-container" class="text-xs text-slate-400"></div>
+                    </div>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2">Lịch sử kết quả</h4>
+                        <div class="overflow-x-auto max-h-40 custom-scrollbar">
+                            <table class="w-full text-xs text-left text-slate-300 min-w-[380px]">
+                                <thead class="text-[10px] uppercase bg-slate-900 text-slate-400 sticky top-0">
+                                    <tr>
+                                        <th class="px-2 py-1.5">Kỳ quay</th>
+                                        <th class="px-2 py-1.5">Ngày</th>
+                                        <th class="px-2 py-1.5">Kết quả quay thưởng</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body" class="divide-y divide-slate-800"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <h4 class="text-xs font-bold text-slate-300 mb-2">Lịch sử kết quả</h4>
-                    <div class="overflow-x-auto max-h-40 custom-scrollbar">
-                        <table class="w-full text-xs text-left text-slate-300 min-w-[380px]">
-                            <thead class="text-[10px] uppercase bg-slate-900 text-slate-400 sticky top-0">
-                                <tr>
-                                    <th class="px-2 py-1.5">Kỳ quay</th>
-                                    <th class="px-2 py-1.5">Ngày</th>
-                                    <th class="px-2 py-1.5">Kết quả quay thưởng</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-body" class="divide-y divide-slate-800"></tbody>
-                        </table>
+                <div id="tab-content-tickets" class="space-y-2 hidden"></div>
+                <div id="tab-content-notify" class="space-y-3 hidden">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <h4 class="text-xs font-bold text-slate-300">🔔 Thông báo kỳ quay mới</h4>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">Bật để app tự báo khi có kết quả kỳ quay mới, và nhắc trước giờ quay số. Chỉ hoạt động khi app đang mở trên trình duyệt (không phải push khi đã tắt app).</p>
+                        <button id="btn-toggle-notify" onclick="toggleNotifications()" class="w-full py-2 text-xs font-bold rounded-lg border transition"></button>
                     </div>
                 </div>
             </div>
@@ -281,6 +307,97 @@
         let chartInstance = null;
         let timerInterval = null;
         let currentTicketCount = 2;
+        let reminderTimeout = null;
+
+        // ===================== LƯU TRỮ CỤC BỘ (localStorage) =====================
+        // Toàn bộ dữ liệu cá nhân hoá (kho lịch sử thật, vé đã lưu, log soi cầu) chỉ lưu TRÊN THIẾT BỊ
+        // này, không gửi lên server nào — phù hợp vì app là 1 file tĩnh trên GitHub Pages, không có backend.
+        const LS_KEYS = {
+            archive: 'vietlott_real_history_v1',
+            tickets: 'vietlott_saved_tickets_v1',
+            predictionLog: 'vietlott_prediction_log_v1',
+            lastSeenDraw: 'vietlott_last_seen_draw_v1',
+            notifyEnabled: 'vietlott_notify_enabled_v1'
+        };
+
+        function lsGet(key, fallback) {
+            try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+            catch (e) { return fallback; }
+        }
+        function lsSet(key, value) {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* bỏ qua nếu đầy bộ nhớ */ }
+        }
+
+        // Kho lịch sử THẬT tích luỹ dần qua mỗi lần mở app — vietlott.vn không có API liệt kê nhiều kỳ,
+        // nên đây là cách duy nhất để có dữ liệu thật ngày càng nhiều theo thời gian sử dụng thực tế.
+        function saveRealDrawToArchive(gameType, draw) {
+            const archive = lsGet(LS_KEYS.archive, {});
+            if (!archive[gameType]) archive[gameType] = [];
+            const exists = archive[gameType].some(d => d.id === draw.id);
+            if (!exists) {
+                archive[gameType].unshift({ id: draw.id, date: draw.date, numbers: draw.numbers, savedAt: Date.now() });
+                archive[gameType] = archive[gameType].slice(0, 120);
+                lsSet(LS_KEYS.archive, archive);
+            }
+            return archive[gameType];
+        }
+        function loadRealArchive(gameType) {
+            const archive = lsGet(LS_KEYS.archive, {});
+            return archive[gameType] || [];
+        }
+
+        // Vé đã lưu của người dùng
+        function saveTicket(gameType, numbers) {
+            const tickets = lsGet(LS_KEYS.tickets, []);
+            tickets.unshift({ id: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), gameType, numbers, savedAt: Date.now() });
+            lsSet(LS_KEYS.tickets, tickets.slice(0, 100));
+            return tickets;
+        }
+        function deleteTicket(ticketId) {
+            const tickets = lsGet(LS_KEYS.tickets, []).filter(t => t.id !== ticketId);
+            lsSet(LS_KEYS.tickets, tickets);
+            return tickets;
+        }
+
+        // Log soi cầu: mỗi lần bấm "Huấn luyện AI" ghi lại các bộ số đã sinh, gắn với kỳ quay hiện tại
+        // (để sau này khi có kỳ quay MỚI, tự động so khớp xem AI đoán trúng bao nhiêu số).
+        function logPrediction(gameType, algoType, sets, currentDrawId) {
+            const log = lsGet(LS_KEYS.predictionLog, []);
+            log.unshift({ gameType, algoType, sets, currentDrawId, gradedAgainst: null, bestMatch: null, predictedAt: Date.now() });
+            lsSet(LS_KEYS.predictionLog, log.slice(0, 200));
+        }
+        function countMatches(setNumbers, actualNumbers, gameType) {
+            if (gameType.startsWith('max3d')) {
+                // Max 3D: so khớp nếu trùng đúng cả bộ 3 chữ số
+                return setNumbers.filter(s => actualNumbers.includes(s)).length > 0 ? 3 : 0;
+            }
+            return setNumbers.filter(n => actualNumbers.includes(n)).length;
+        }
+        // Khi phát hiện kỳ quay MỚI (id tăng liên tiếp so với kỳ trước), chấm điểm các dự đoán cũ đang chờ
+        function gradePredictionLog(gameType, previousDrawId, newDraw) {
+            const log = lsGet(LS_KEYS.predictionLog, []);
+            let changed = false;
+            log.forEach(entry => {
+                if (entry.gameType === gameType && entry.currentDrawId === previousDrawId && entry.gradedAgainst === null) {
+                    let best = 0;
+                    entry.sets.forEach(setNumbers => {
+                        const m = countMatches(setNumbers, newDraw.numbers, gameType);
+                        if (m > best) best = m;
+                    });
+                    entry.gradedAgainst = newDraw.id;
+                    entry.bestMatch = best;
+                    changed = true;
+                }
+            });
+            if (changed) lsSet(LS_KEYS.predictionLog, log);
+        }
+        function getPredictionAccuracyStats(gameType) {
+            const log = lsGet(LS_KEYS.predictionLog, []).filter(e => e.gameType === gameType && e.gradedAgainst !== null);
+            if (log.length === 0) return null;
+            const avg = log.reduce((s, e) => s + e.bestMatch, 0) / log.length;
+            const max = Math.max(...log.map(e => e.bestMatch));
+            return { count: log.length, avgBestMatch: avg, maxBestMatch: max };
+        }
 
         // Tạo manifest.json động (Blob) trỏ về icon.png cùng thư mục -> không cần tải thêm file
         // manifest.json riêng lên GitHub Pages. Nhờ đó khi "Thêm vào Màn hình chính" trên Android/Chrome,
@@ -334,8 +451,188 @@
 
         function toggleStatsModal(show) {
             const modal = document.getElementById('stats-modal');
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
+            if (show) {
+                modal.classList.remove('hidden');
+                switchModalTab('stats');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function switchModalTab(tab) {
+            ['stats', 'tickets', 'notify'].forEach(t => {
+                document.getElementById(`tab-content-${t}`).classList.toggle('hidden', t !== tab);
+                const btn = document.querySelector(`.modal-tab-btn[data-tab="${t}"]`);
+                if (btn) {
+                    btn.classList.toggle('text-indigo-300', t === tab);
+                    btn.classList.toggle('border-indigo-400', t === tab);
+                    btn.classList.toggle('text-slate-400', t !== tab);
+                    btn.classList.toggle('border-transparent', t !== tab);
+                }
+            });
+            if (tab === 'tickets') renderTicketsTab();
+            if (tab === 'notify') renderNotifyTab();
+            if (tab === 'stats') renderHotCold();
+        }
+
+        // ---- Tab: Số nóng / Số lạnh (dựa trên kho lịch sử THẬT tích luỹ theo thời gian) ----
+        function renderHotCold() {
+            const gameType = document.getElementById('game-type').value;
+            const archive = loadRealArchive(gameType);
+            const label = document.getElementById('archive-count-label');
+            const container = document.getElementById('hot-cold-container');
+            label.innerText = `${archive.length} kỳ thật đã lưu`;
+
+            if (archive.length < 3) {
+                container.innerHTML = `<p class="col-span-2 text-slate-500 text-[11px]">Cần tích luỹ thêm dữ liệu thật (mỗi lần app lấy được kỳ quay mới sẽ tự lưu lại). Hiện có ${archive.length} kỳ — quay lại sau vài lần mở app để xem thống kê chính xác hơn.</p>`;
+                return;
+            }
+
+            const isDigit = gameType.startsWith('max3d');
+            const freq = {};
+            const lastSeenIdx = {};
+            archive.forEach((draw, idx) => {
+                const nums = isDigit ? draw.numbers.join('').split('').map(Number) : draw.numbers;
+                nums.forEach(n => {
+                    freq[n] = (freq[n] || 0) + 1;
+                    if (lastSeenIdx[n] === undefined) lastSeenIdx[n] = idx; // idx 0 = kỳ gần nhất
+                });
+            });
+            const entries = Object.keys(freq).map(n => ({ n, count: freq[n], gap: lastSeenIdx[n] }));
+            entries.sort((a, b) => b.count - a.count || a.gap - b.gap);
+            const hot = entries.slice(0, 6);
+            const cold = [...entries].sort((a, b) => a.count - b.count || b.gap - a.gap).slice(0, 6);
+
+            const chip = (e, colorClass) => `<span class="inline-flex flex-col items-center px-1.5 py-1 rounded-lg ${colorClass} min-w-[38px]"><b class="text-[11px]">${isDigit ? e.n : (e.n < 10 ? '0'+e.n : e.n)}</b><span class="text-[8px] opacity-80">${e.count} lần · cách ${e.gap}</span></span>`;
+
+            container.innerHTML = `
+                <div>
+                    <p class="text-[10px] text-red-400 font-bold mb-1">🔥 Nóng nhất</p>
+                    <div class="flex flex-wrap gap-1">${hot.map(e => chip(e, 'bg-red-500/10 text-red-300 border border-red-500/20')).join('')}</div>
+                </div>
+                <div>
+                    <p class="text-[10px] text-sky-400 font-bold mb-1">❄️ Lạnh nhất</p>
+                    <div class="flex flex-wrap gap-1">${cold.map(e => chip(e, 'bg-sky-500/10 text-sky-300 border border-sky-500/20')).join('')}</div>
+                </div>
+            `;
+
+            const accStats = getPredictionAccuracyStats(gameType);
+            const accContainer = document.getElementById('accuracy-stats-container');
+            if (!accStats) {
+                accContainer.innerHTML = `<p>Chưa có dự đoán nào được chấm điểm — sau khi bạn bấm "Huấn luyện AI" và kỳ quay tiếp theo có kết quả thật, app sẽ tự so khớp và hiện thống kê ở đây.</p>`;
+            } else {
+                accContainer.innerHTML = `<p>Đã chấm điểm <b class="text-slate-200">${accStats.count}</b> lượt dự đoán · Trung bình đoán trúng <b class="text-emerald-400">${accStats.avgBestMatch.toFixed(1)}</b> số/vé · Cao nhất <b class="text-amber-400">${accStats.maxBestMatch}</b> số/vé</p>`;
+            }
+        }
+
+        // ---- Tab: Vé của tôi ----
+        function renderTicketsTab() {
+            const gameType = document.getElementById('game-type').value;
+            const container = document.getElementById('tab-content-tickets');
+            const tickets = lsGet(LS_KEYS.tickets, []).filter(t => t.gameType === gameType);
+            const archive = loadRealArchive(gameType);
+            const latestReal = archive[0] || null;
+
+            if (tickets.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 text-[11px] text-center py-6">Chưa có vé nào được lưu cho loại hình này. Bấm "💾 Lưu" trên bộ số AI sinh ra để lưu vào đây.</p>`;
+                return;
+            }
+
+            container.innerHTML = tickets.map(t => {
+                let matchHtml = '';
+                if (latestReal) {
+                    const m = countMatches(t.numbers, latestReal.numbers, gameType);
+                    const good = gameType.startsWith('max3d') ? m >= 3 : m >= 3;
+                    matchHtml = `<div class="text-[10px] mt-1 ${good ? 'text-emerald-400' : 'text-slate-500'}">So với kỳ ${latestReal.id} (${latestReal.date}): trùng <b>${m}</b> số</div>`;
+                }
+                return `
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex items-center overflow-x-auto py-0.5">${renderBalls(t.numbers, gameType)}</div>
+                        <button onclick="handleDeleteTicket('${t.id}')" class="shrink-0 p-1 text-slate-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                    <div class="text-[9px] text-slate-600 mt-1">${new Date(t.savedAt).toLocaleString('vi-VN')}</div>
+                    ${matchHtml}
+                </div>`;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        }
+        function handleDeleteTicket(ticketId) {
+            deleteTicket(ticketId);
+            renderTicketsTab();
+        }
+        function handleSaveTicket(gameType, numbersJson, btnEl) {
+            const numbers = JSON.parse(numbersJson);
+            saveTicket(gameType, numbers);
+            if (btnEl) {
+                btnEl.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i>';
+                btnEl.classList.add('text-emerald-400');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        // ---- Tab: Thông báo ----
+        function renderNotifyTab() {
+            const btn = document.getElementById('btn-toggle-notify');
+            const enabled = lsGet(LS_KEYS.notifyEnabled, false) && (typeof Notification !== 'undefined' && Notification.permission === 'granted');
+            if (typeof Notification === 'undefined') {
+                btn.innerText = 'Trình duyệt không hỗ trợ thông báo';
+                btn.disabled = true;
+                btn.className = "w-full py-2 text-xs font-bold rounded-lg border border-slate-700 text-slate-500";
+                return;
+            }
+            btn.disabled = false;
+            if (enabled) {
+                btn.innerText = '🔔 Đã bật — Bấm để tắt';
+                btn.className = "w-full py-2 text-xs font-bold rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
+            } else {
+                btn.innerText = '🔕 Bật thông báo';
+                btn.className = "w-full py-2 text-xs font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-200";
+            }
+        }
+        async function toggleNotifications() {
+            const currentlyEnabled = lsGet(LS_KEYS.notifyEnabled, false);
+            if (currentlyEnabled) {
+                lsSet(LS_KEYS.notifyEnabled, false);
+                if (reminderTimeout) clearTimeout(reminderTimeout);
+                renderNotifyTab();
+                return;
+            }
+            if (typeof Notification === 'undefined') return;
+            const perm = await Notification.requestPermission();
+            if (perm === 'granted') {
+                lsSet(LS_KEYS.notifyEnabled, true);
+                new Notification('Vietlott TensorFlow AI', { body: 'Đã bật thông báo — sẽ báo khi có kỳ quay mới.' });
+                scheduleDrawReminder();
+            }
+            renderNotifyTab();
+        }
+        function fireNewDrawNotification(gameName, draw) {
+            if (!lsGet(LS_KEYS.notifyEnabled, false)) return;
+            if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+            try {
+                new Notification(`${gameName}: Có kết quả kỳ quay mới!`, {
+                    body: `Kỳ ${draw.id} (${draw.date}): ${draw.numbers.join(' - ')}`,
+                    icon: 'icon.png'
+                });
+            } catch (e) { /* một số trình duyệt mobile chặn Notification trực tiếp, bỏ qua an toàn */ }
+        }
+        function scheduleDrawReminder() {
+            if (reminderTimeout) clearTimeout(reminderTimeout);
+            if (!lsGet(LS_KEYS.notifyEnabled, false)) return;
+            const gameType = document.getElementById('game-type').value;
+            const targetTime = getNextDrawTime(gameType);
+            const reminderTime = new Date(targetTime.getTime() - 15 * 60 * 1000);
+            const msUntilReminder = reminderTime - new Date();
+            // Chỉ đặt hẹn giờ nếu trong vòng 24h tới (setTimeout không đáng tin cậy cho khoảng quá xa,
+            // và chỉ hoạt động khi tab/app đang mở — trình duyệt không hỗ trợ báo khi app đã tắt hẳn).
+            if (msUntilReminder > 0 && msUntilReminder < 24 * 60 * 60 * 1000) {
+                reminderTimeout = setTimeout(() => {
+                    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                        try { new Notification('Sắp đến giờ quay số!', { body: 'Còn 15 phút nữa là đến giờ quay — đừng quên xem trực tiếp.', icon: 'icon.png' }); } catch (e) {}
+                    }
+                }, msUntilReminder);
+            }
         }
 
         const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -568,11 +865,28 @@
                         const latestDraw = parseVietlottResultHtml(html, gameType);
                         logTrain(`<b class="text-emerald-400">[Data]</b> ${label} đọc được kỳ quay thật ${latestDraw.id} (${latestDraw.date})`);
                         lastRealJackpotBillionVnd = latestDraw.jackpot ? (latestDraw.jackpot / 1e9) : null;
-                        // Kỳ mới nhất là dữ liệu THẬT vừa đọc được; các kỳ cũ hơn dùng dữ liệu mô phỏng
-                        // để có đủ chuỗi lịch sử cho mô hình AI huấn luyện (vietlott.vn không có API liệt kê
-                        // nhiều kỳ quay công khai để lấy toàn bộ lịch sử thật).
-                        const synthetic = generateSyntheticData(gameType).slice(1);
-                        return [{ id: latestDraw.id, date: latestDraw.date, numbers: latestDraw.numbers }, ...synthetic];
+
+                        // Phát hiện kỳ quay MỚI so với lần trước để: (1) báo thông báo, (2) chấm điểm log soi cầu cũ,
+                        // (3) tích luỹ vào kho lịch sử thật trên thiết bị.
+                        const lastSeenMap = lsGet(LS_KEYS.lastSeenDraw, {});
+                        const previousSeenId = lastSeenMap[gameType];
+                        if (previousSeenId && previousSeenId !== latestDraw.id) {
+                            gradePredictionLog(gameType, previousSeenId, latestDraw);
+                            const gameNames = { mega645: 'Mega 6/45', power655: 'Power 6/55', lotto535: 'Lotto 5/35', max3d: 'Max 3D', max3dplus: 'Max 3D+', max3dpro: 'Max 3D Pro' };
+                            fireNewDrawNotification(gameNames[gameType] || gameType, latestDraw);
+                        }
+                        lastSeenMap[gameType] = latestDraw.id;
+                        lsSet(LS_KEYS.lastSeenDraw, lastSeenMap);
+                        saveRealDrawToArchive(gameType, latestDraw);
+
+                        // Kết hợp toàn bộ kho lịch sử THẬT đã tích luỹ (nhiều nhất có thể) với dữ liệu mô phỏng
+                        // bù thêm cho đủ chuỗi cần thiết để mô hình AI huấn luyện — càng dùng app lâu, tỉ lệ
+                        // dữ liệu thật càng cao dần, tự động, không cần làm gì thêm.
+                        const realArchive = loadRealArchive(gameType);
+                        const TARGET_TOTAL = 40;
+                        const neededSynthetic = Math.max(0, TARGET_TOTAL - realArchive.length);
+                        const synthetic = neededSynthetic > 0 ? generateSyntheticData(gameType).slice(0, neededSynthetic) : [];
+                        return [...realArchive, ...synthetic];
                     } catch (e) {
                         lastError = e;
                         logTrain(`<span class="text-red-400">[Data]</span> ${label} lỗi (vòng ${pass + 1}): ${e.message || e}`);
@@ -698,6 +1012,7 @@
             }
             updateTimer();
             timerInterval = setInterval(updateTimer, 1000);
+            scheduleDrawReminder();
         }
 
         function getFrequencies(gameType) {
@@ -1062,9 +1377,20 @@
                         <span class="text-[8px] font-bold text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">AI ${confidencePct}%</span>
                         <span class="text-[8px] text-slate-500 font-mono whitespace-nowrap">1/${theoreticalOdds.toLocaleString('vi-VN')}</span>
                     </div>
-                    <div class="flex items-center overflow-x-auto py-0.5">${renderBalls(selectedNumbers, gameType)}</div>
+                    <div class="flex items-center overflow-x-auto py-0.5 flex-1">${renderBalls(selectedNumbers, gameType)}</div>
+                    <button onclick='handleSaveTicket(${JSON.stringify(gameType)}, ${JSON.stringify(JSON.stringify(selectedNumbers))}, this)' title="Lưu vé này" class="shrink-0 p-1.5 text-slate-400 hover:text-amber-400 bg-slate-800/60 hover:bg-slate-800 rounded-lg border border-slate-700 transition">
+                        <i data-lucide="bookmark-plus" class="w-3.5 h-3.5"></i>
+                    </button>
                 `;
                 container.appendChild(card);
+            }
+            if (window.lucide) lucide.createIcons();
+
+            // Ghi log soi cầu: gắn với kỳ quay hiện tại (kỳ mới nhất đã biết) để sau này tự chấm điểm
+            // khi có kết quả thật của kỳ kế tiếp.
+            const currentDrawId = (rawDraws && rawDraws[0]) ? rawDraws[0].id : null;
+            if (currentDrawId) {
+                logPrediction(gameType, document.getElementById('algo-type').value, generatedSets, currentDrawId);
             }
         }
 
