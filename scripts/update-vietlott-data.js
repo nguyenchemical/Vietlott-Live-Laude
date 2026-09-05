@@ -1,11 +1,8 @@
-// Script này chạy TỰ ĐỘNG trên máy chủ GitHub Actions (không phải trên máy người dùng),
-// nên không cần lo về CORS hay chặn trình duyệt. Nó dùng lại đúng Worker CORS proxy đã
-// được xác nhận hoạt động tốt để lấy trang kết quả HTML thật từ vietlott.vn, trích xuất
-// kỳ quay mới nhất, rồi gộp vào file data/<gameType>.json trong repo.
-//
-// ĐỔI Ở ĐÂY nếu sau này bạn tạo Worker mới (khác URL):
-const PROXY_BASE = "https://vietlott.nguyenchemical.workers.dev/?url=";
-
+// Script này chạy TỰ ĐỘNG trên máy chủ GitHub Actions. Vietlott.vn được bảo vệ bởi trang kiểm
+// tra chống-bot của Cloudflare (yêu cầu chạy JavaScript thật để xác nhận là trình duyệt thật),
+// nên không thể lấy dữ liệu bằng fetch() đơn thuần — phải dùng Playwright để mở 1 trình duyệt ẩn
+// (headless Chromium) thật sự, để nó tự vượt qua bài kiểm tra đó như người dùng bình thường.
+const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
@@ -20,7 +17,7 @@ const GAMES = {
 
 function parseResultHtml(html, gameType) {
     const anchorIdx = html.indexOf('day_so_ket_qua');
-    if (anchorIdx === -1) throw new Error('Không tìm thấy khối kết quả trong trang (cấu trúc trang có thể đã đổi)');
+    if (anchorIdx === -1) throw new Error('Không tìm thấy khối kết quả trong trang (có thể vẫn đang ở trang kiểm tra chống-bot)');
     const windowHtml = html.substring(anchorIdx, anchorIdx + 2000);
 
     const ballMatches = [...windowHtml.matchAll(/bong_tron[^"]*">\s*(\d+)\s*</g)].map(m => m[1]);
@@ -42,16 +39,22 @@ function parseResultHtml(html, gameType) {
     return { id: `#${idMatch[1]}`, date: idMatch[2], numbers };
 }
 
-async function fetchGame(gameType, resultPath) {
+async function fetchGame(browser, gameType, resultPath) {
     const targetUrl = `https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/${resultPath}`;
-    const proxyUrl = PROXY_BASE + encodeURIComponent(targetUrl);
-    const res = await fetch(proxyUrl, { headers: { 'Accept': 'text/html' } });
-    const bodyText = await res.text();
-    if (!res.ok) {
-        // In thêm 300 ký tự đầu của nội dung lỗi để biết chính xác ai đang chặn (Cloudflare hay vietlott.vn)
-        throw new Error(`HTTP ${res.status} — nội dung trả về: ${bodyText.slice(0, 300).replace(/\s+/g, ' ')}`);
+    const context = await browser.newContext({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        locale: 'vi-VN'
+    });
+    const page = await context.newPage();
+    try {
+        await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        // Đợi thêm để trang kiểm tra chống-bot (nếu xuất hiện) tự chạy xong và chuyển sang trang thật
+        await page.waitForTimeout(6000);
+        const html = await page.content();
+        return parseResultHtml(html, gameType);
+    } finally {
+        await context.close();
     }
-    return parseResultHtml(bodyText, gameType);
 }
 
 function mergeById(existing, newDraw) {
@@ -68,6 +71,8 @@ async function main() {
     const dataDir = path.join(__dirname, '..', 'data');
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
+    const browser = await chromium.launch();
+
     for (const [gameType, resultPath] of Object.entries(GAMES)) {
         const filePath = path.join(dataDir, `${gameType}.json`);
         let existing = [];
@@ -76,7 +81,7 @@ async function main() {
         }
 
         try {
-            const draw = await fetchGame(gameType, resultPath);
+            const draw = await fetchGame(browser, gameType, resultPath);
             const merged = mergeById(existing, draw);
             fs.writeFileSync(filePath, JSON.stringify(merged, null, 2), 'utf8');
             console.log(`[OK] ${gameType}: kỳ mới nhất ${draw.id} (${draw.date}) — tổng ${merged.length} kỳ đang lưu`);
@@ -84,9 +89,11 @@ async function main() {
             console.warn(`[SKIP] ${gameType}: ${e.message}`);
         }
 
-        // Nghỉ giữa các lượt gọi để không dồn dập request lên Worker/vietlott.vn
-        await new Promise(r => setTimeout(r, 1500));
+        // Nghỉ giữa các lượt để không gây tải dồn dập lên vietlott.vn
+        await new Promise(r => setTimeout(r, 2000));
     }
+
+    await browser.close();
 }
 
 main().catch(err => {
