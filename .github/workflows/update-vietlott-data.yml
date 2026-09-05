@@ -21,6 +21,11 @@ jobs:
         with:
           node-version: 20
 
+      - name: Cài Playwright (trình duyệt ẩn) để vượt qua kiểm tra chống bot
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+
       - name: Lấy dữ liệu Vietlott mới nhất
         run: node scripts/update-vietlott-data.js
 
