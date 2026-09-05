@@ -46,9 +46,12 @@ async function fetchGame(gameType, resultPath) {
     const targetUrl = `https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/${resultPath}`;
     const proxyUrl = PROXY_BASE + encodeURIComponent(targetUrl);
     const res = await fetch(proxyUrl, { headers: { 'Accept': 'text/html' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
-    return parseResultHtml(html, gameType);
+    const bodyText = await res.text();
+    if (!res.ok) {
+        // In thêm 300 ký tự đầu của nội dung lỗi để biết chính xác ai đang chặn (Cloudflare hay vietlott.vn)
+        throw new Error(`HTTP ${res.status} — nội dung trả về: ${bodyText.slice(0, 300).replace(/\s+/g, ' ')}`);
+    }
+    return parseResultHtml(bodyText, gameType);
 }
 
 function mergeById(existing, newDraw) {
