@@ -49,9 +49,15 @@ async function fetchGame(browser, gameType, resultPath) {
     try {
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
         // Đợi thêm để trang kiểm tra chống-bot (nếu xuất hiện) tự chạy xong và chuyển sang trang thật
-        await page.waitForTimeout(6000);
+        await page.waitForTimeout(8000);
+        const title = await page.title();
         const html = await page.content();
-        return parseResultHtml(html, gameType);
+        try {
+            return parseResultHtml(html, gameType);
+        } catch (parseErr) {
+            // Chẩn đoán: in ra tiêu đề trang + 200 ký tự đầu để biết chính xác trang đang ở trạng thái nào
+            throw new Error(`${parseErr.message} — Tiêu đề trang: "${title}" — Đầu trang: ${html.replace(/\s+/g, ' ').slice(0, 200)}`);
+        }
     } finally {
         await context.close();
     }
